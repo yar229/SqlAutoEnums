@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="574b92aa-6e51-4357-8aeb-18735f47f8be" ChangeDateTime="07/26/2013 13:36:08">
+    <Property Name="ElementName" Value="[SqlAutoEnums].[Data]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="" />
+    <Property Name="ParentElementType" Value="" />
+    <Property Name="NewName" Value="[dbo.[SqlAutoEnums.Data]]]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="86cfa94e-b4a6-478b-b2a8-82bdc66ca33f" ChangeDateTime="07/26/2013 13:36:29">
+    <Property Name="ElementName" Value="[SqlAutoEnums].[dbo.[SqlAutoEnums.Data]]]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="" />
+    <Property Name="ParentElementType" Value="" />
+    <Property Name="NewName" Value="[SqlAutoEnums.Data]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6277ba39-cbfc-4637-b16a-1e62b579bc7f" ChangeDateTime="07/26/2013 13:36:45">
+    <Property Name="ElementName" Value="[SqlAutoEnums].[SqlAutoEnums.Data]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="" />
+    <Property Name="ParentElementType" Value="" />
+    <Property Name="NewName" Value="[dbo.SqlAutoEnumsData]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="42526e8e-b331-46b2-b1ec-6dea192c5fd3" ChangeDateTime="07/26/2013 13:37:12">
+    <Property Name="ElementName" Value="[SqlAutoEnums].[dbo.SqlAutoEnumsData]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="" />
+    <Property Name="ParentElementType" Value="" />
+    <Property Name="NewName" Value="[SqlAutoEnumsData]" />
+  </Operation>
+</Operations>
