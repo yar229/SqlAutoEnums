@@ -35,7 +35,7 @@ IF EXISTS(select 1 from INFORMATION_SCHEMA.ROUTINES where ROUTINE_NAME = 'SqlAut
 GO
 CREATE FUNCTION [dbo].[SqlAutoEnums.Enum_Equals]
 (
-  @enumName NVARCHAR(100)
+	@enumName NVARCHAR(100)
 )
 RETURNS bit 
 AS
@@ -377,19 +377,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TRIGGER [dbo].[SqlAutoEnums.Renew.Trigger]
-   ON  [dbo].[SqlAutoEnums.Data]
-   AFTER INSERT, DELETE, UPDATE
-AS 
-BEGIN
-
-	EXEC dbo.[SqlAutoEnums.Renew];
-
-END
-
-GO
-
-
 /****** Object:  StoredProcedure [dbo].[SqlAutoEnums.Renew]    Script Date: 04.08.2013 0:36:36 ******/
 SET ANSI_NULLS ON
 GO
@@ -533,8 +520,23 @@ BEGIN CATCH
 	THROW;
 END CATCH;    
 
+-- DROP TABLE __enumlock
+-- CREATE TABLE __enumlock(ID dbo.EnumLollyB)
+-- SELECT * FROM dbo.[SqlAutoEnums.Enums_Current]()
+
 
 END
 GO
 
 
+CREATE TRIGGER [dbo].[SqlAutoEnums.Renew.Trigger]
+   ON  [dbo].[SqlAutoEnums.Data]
+   AFTER INSERT, DELETE, UPDATE
+AS 
+BEGIN
+
+	EXEC dbo.[SqlAutoEnums.Renew];
+
+END
+
+GO
