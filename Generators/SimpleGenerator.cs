@@ -100,7 +100,7 @@ namespace SQLAutoEnums.Generators
         private string _strEnumStructHeader = //  0 = structname, 1 = enumname
             @"
     [Serializable]
-    [SqlUserDefinedType(Format.UserDefined, IsByteOrdered = true, IsFixedLength = true, MaxByteSize=-1)] 
+    [SqlUserDefinedType(Format.UserDefined, IsByteOrdered = true, IsFixedLength = true, MaxByteSize=4)] 
     public struct {0} : INullable,   IBinarySerialize
     {{
         public {0}({1} val)
@@ -159,6 +159,7 @@ namespace SQLAutoEnums.Generators
         public bool IsNull {{ get {{ return _null; }} }}
         public static {0} Null {{ get {{ var h = new {0} {{ _null = true }}; return h; }} }}
 
+        [SqlFunction(IsDeterministic = true)]
         public static {0} Parse(SqlString s)
         {{
             if (s.IsNull) return Null;

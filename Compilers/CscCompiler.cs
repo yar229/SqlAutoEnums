@@ -22,6 +22,8 @@ namespace SQLAutoEnums.Compilers
         }
 
 
+
+
         public string Code
         {
             get { return _code; }

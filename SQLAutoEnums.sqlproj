@@ -81,7 +81,6 @@
   <ItemGroup>
     <None Include="SQLAutoEnumsTest.publish.xml" />
     <None Include="SQLAutoEnums.publish.xml" />
-    <None Include="SQLAutoEnumsTest1.publish.xml" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="SQLAutoEnums.refactorlog" />
