@@ -478,7 +478,7 @@ BEGIN TRY
 		SET @msg = 'Cannot compile generated code:' + @compilemsg;
 		RAISERROR(@msg, 16, 2);	  
 	END;
-	DECLARE @qryCreateAssembly NVARCHAR(MAX) =  'CREATE ASSEMBLY [' + @newAsmName + '] FROM ' + master.dbo.fn_varbintohexstr(@bin) + ' WITH PERMISSION_SET = UNSAFE;';
+	DECLARE @qryCreateAssembly NVARCHAR(MAX) =  'CREATE ASSEMBLY [' + @newAsmName + '] FROM ' + master.dbo.fn_varbintohexstr(@bin) + ' WITH PERMISSION_SET = SAFE;';
 	EXEC sp_executesql @qryCreateAssembly;
 	SELECT @newAsmId = asm.assembly_id FROM sys.assemblies asm WHERE asm.name = @newAsmName;
 	PRINT 'New assembly: done.';
