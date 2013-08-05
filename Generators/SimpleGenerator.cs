@@ -9,13 +9,6 @@ using System.Text;
 
 namespace SQLAutoEnums.Generators
 {
-    //enum ValueType
-    //{
-    //    Short,
-    //    Byte,
-    //    Int
-    //}
-
     class EnumDescriptor
     {
         public string ValueType { get { return "int"; } }

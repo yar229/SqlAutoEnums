@@ -15,7 +15,8 @@ namespace SQLAutoEnums.Compilers
     {
         public CscCompiler()
         {
-            _cscPath = Environment.GetEnvironmentVariable("windir") + "\\Microsoft.NET\\Framework\\v3.5\\csc.exe";
+            //_cscPath = Environment.GetEnvironmentVariable("windir") + "\\Microsoft.NET\\Framework\\v3.5\\csc.exe";
+            _cscPath = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory() + "csc.exe";
             _tempPath = Environment.GetEnvironmentVariable("TEMP");
             _codePath = _tempPath + "\\" + Guid.NewGuid() + ".cs";
             _dllPath = _tempPath + "\\" + Guid.NewGuid() + ".dll";            
@@ -84,7 +85,7 @@ namespace SQLAutoEnums.Compilers
 
                 Process p = new Process();
                 p.StartInfo.FileName = _cscPath;
-                p.StartInfo.Arguments = string.Format("/target:library /out:\"{0}\" \"{1}\" ", _dllPath, _codePath);
+                p.StartInfo.Arguments = string.Format("/optimize+ /nologo /preferreduilang:en /target:library /out:\"{0}\" \"{1}\" ", _dllPath, _codePath);
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.WorkingDirectory = _tempPath;

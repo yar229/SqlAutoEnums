@@ -97,28 +97,6 @@ public partial class UserDefinedFunctions
         return null;
     }
 
-    //[return: SqlFacet(MaxSize = -1)]
-    //[Microsoft.SqlServer.Server.SqlFunction]
-    //public static SqlChars SqlAutoEnumsGenerateTest()
-    //{
-    //    EnumDescriptor ed = new EnumDescriptor
-    //        {
-    //            Prefix = "Enum",
-    //            Name = "Test",
-    //            Values = new List<KeyValuePair<string, int>>()
-    //        };
-    //    ed.Values.Add(new KeyValuePair<string, int>("Enval1", 1));
-    //    ed.Values.Add(new KeyValuePair<string, int>("Enval2", 2));
-
-    //    var lst = new List<EnumDescriptor>();
-    //    lst.Add(ed);
-
-    //    var gen = new SimpleGenerator();
-    //    string res = gen.Generate(lst);
-
-    //    return new SqlChars(res.ToCharArray());
-    //}
-
     private static SqlChars SqlAutoEnumsGenerateFromList(List<EnumDescriptor> list)
     {
         var gen = new SimpleGenerator();
