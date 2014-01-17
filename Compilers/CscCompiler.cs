@@ -4,8 +4,6 @@
 // </copyright>
 //------------------------------------------------------------------------------
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Diagnostics;
 
@@ -37,40 +35,17 @@ namespace SQLAutoEnums.Compilers
         }
         private string _code;
 
-        public CompileStatus Status
-        {
-            get { return _status; }
-            private set { _status = value; }
-        }
-        private CompileStatus _status;
+        public CompileStatus Status { get; private set; }
 
-        public byte[] CompiledCode
-        {
-            get { return _compiledCode;  }
-            private set
-            {
-                _compiledCode = value;
-            }
-        }
-        private byte[] _compiledCode;
+        public byte[] CompiledCode { get; private set; }
 
-        public string[] CompilerMessages
-        {
-            get { return _compilerMessages; }
-            private set
-            {
-                _compilerMessages = value;
-            }
-        }
-        private string[] _compilerMessages;
+        public string[] CompilerMessages { get; private set; }
 
 
-
-
-        private string _cscPath;
-        private string _tempPath;
-        private string _codePath;
-        private string _dllPath;
+        private readonly string _cscPath;
+        private readonly string _tempPath;
+        private readonly string _codePath;
+        private readonly string _dllPath;
 
 
         public int Compile()
@@ -83,12 +58,18 @@ namespace SQLAutoEnums.Compilers
             {
                 File.WriteAllText(_codePath, Code);
 
-                Process p = new Process();
-                p.StartInfo.FileName = _cscPath;
-                p.StartInfo.Arguments = string.Format("/optimize+ /nologo /preferreduilang:en /target:library /out:\"{0}\" \"{1}\" ", _dllPath, _codePath);
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.WorkingDirectory = _tempPath;
+                var p = new Process
+                {
+                    StartInfo =
+                    {
+                        FileName = _cscPath,
+                        Arguments =
+                            string.Format("/optimize+ /nologo /preferreduilang:en /target:library /out:\"{0}\" \"{1}\" ", _dllPath, _codePath),
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        WorkingDirectory = _tempPath
+                    }
+                };
                 p.Start();
 
                 string output = p.StandardOutput.ReadToEnd();
@@ -96,9 +77,9 @@ namespace SQLAutoEnums.Compilers
 
                 
 
-                CompilerMessages = new string[2]
+                CompilerMessages = new[]
                     {
-                        "Compiler exit code = " + p.ExitCode.ToString(),
+                        "Compiler exit code = " + p.ExitCode,
                         output
                     };
 
@@ -114,7 +95,7 @@ namespace SQLAutoEnums.Compilers
 
                 return p.ExitCode;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 Status = CompileStatus.Failed;
                 throw;

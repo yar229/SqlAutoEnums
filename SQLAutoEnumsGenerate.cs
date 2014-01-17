@@ -3,158 +3,159 @@
 //     Copyright (c) Microsoft Corporation.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using Microsoft.SqlServer.Server;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
 using SQLAutoEnums.Compilers;
 using SQLAutoEnums.Generators;
 
-
-public partial class UserDefinedFunctions
+namespace SQLAutoEnums
 {
-    [return: SqlFacet(MaxSize = -1)]
-    [Microsoft.SqlServer.Server.SqlFunction]
-    public static SqlChars SqlAutoEnumsTryCompile([SqlFacet(MaxSize = -1)]SqlString code)
+    public class UserDefinedFunctions
     {
-        CscCompiler csc = CompileIt(code.ToString());
-
-        string msg = string.Empty;
-        foreach (string s in csc.CompilerMessages)
+        [return: SqlFacet(MaxSize = -1)]
+        [SqlFunction]
+        public static SqlChars SqlAutoEnumsTryCompile([SqlFacet(MaxSize = -1)]SqlString code)
         {
-            msg += s + "\r\n";
+            CscCompiler csc = CompileIt(code.ToString());
+
+            string msg = string.Empty;
+            foreach (string s in csc.CompilerMessages)
+            {
+                msg += s + "\r\n";
+            }
+
+            //msg += code.ToString();
+            return new SqlChars(msg.ToCharArray());
         }
 
-        //msg += code.ToString();
-        return new SqlChars(msg.ToCharArray());
-    }
-
-    [return: SqlFacet(MaxSize = -1)]
-    [Microsoft.SqlServer.Server.SqlFunction]
-    public static SqlBinary SqlAutoEnumsCompile([SqlFacet(MaxSize = -1)]SqlString code)
-    {
-        CscCompiler csc = CompileIt(code.ToString());
-
-        if (csc.Status == CompileStatus.Success)
-            return csc.CompiledCode;
-
-        return null;
-    }
-
-    [return: SqlFacet(MaxSize = -1)]
-    [SqlFunction(DataAccess = DataAccessKind.Read)]
-    public static SqlChars SqlAutoEnumsGenerate(SqlString tableName, SqlString columnPrefix, SqlString columnName, SqlString columnMember, SqlString columnValue)
-    {
-        using (SqlConnection conn = new SqlConnection("context connection=true"))
+        [return: SqlFacet(MaxSize = -1)]
+        [SqlFunction]
+        public static SqlBinary SqlAutoEnumsCompile([SqlFacet(MaxSize = -1)]SqlString code)
         {
-            conn.Open();
-            string qry =
-                //                             0              1            2                   3
-                string.Format("select {1} as Prefix, {2} as Name, {3} as MemberName, {4} as MemberValue from {0}",
-                              tableName, columnPrefix, columnName, columnMember, columnValue);
+            CscCompiler csc = CompileIt(code.ToString());
 
+            if (csc.Status == CompileStatus.Success)
+                return csc.CompiledCode;
 
-            var command = new SqlCommand(qry, conn) { CommandType = CommandType.Text };
+            return null;
+        }
 
-            var reader = command.ExecuteReader();
-
-            var result = new List<EnumDescriptor>();
-            while (reader.Read())
+        [return: SqlFacet(MaxSize = -1)]
+        [SqlFunction(DataAccess = DataAccessKind.Read)]
+        public static SqlChars SqlAutoEnumsGenerate(SqlString tableName, SqlString columnPrefix, SqlString columnName, SqlString columnMember, SqlString columnValue)
+        {
+            using (var conn = new SqlConnection("context connection=true"))
             {
-                string prefix = reader[0].ToString();
-                string name = reader[1].ToString();
-                string memberName = reader[2].ToString();
-                int memberValue = reader.GetInt32(3);
-                EnumDescriptor ed = Search(result,prefix, name);
-                if (null == ed)
+                conn.Open();
+                string qry =
+                    //                             0              1            2                   3
+                    string.Format("select {1} as Prefix, {2} as Name, {3} as MemberName, {4} as MemberValue from {0}",
+                        tableName, columnPrefix, columnName, columnMember, columnValue);
+
+
+                var command = new SqlCommand(qry, conn) { CommandType = CommandType.Text };
+
+                var reader = command.ExecuteReader();
+
+                var result = new List<EnumDescriptor>();
+                while (reader.Read())
                 {
-                    ed = new EnumDescriptor
+                    string prefix = reader[0].ToString();
+                    string name = reader[1].ToString();
+                    string memberName = reader[2].ToString();
+                    int memberValue = reader.GetInt32(3);
+                    EnumDescriptor ed = Search(result,prefix, name);
+                    if (null == ed)
+                    {
+                        ed = new EnumDescriptor
                         {
                             Prefix = prefix,
                             Name = name
                         };
-                    result.Add(ed);
+                        result.Add(ed);
+                    }
+
+                    ed.Values.Add(new KeyValuePair<string, int>(memberName, memberValue));
                 }
 
-                ed.Values.Add(new KeyValuePair<string, int>(memberName, memberValue));
+                return SqlAutoEnumsGenerateFromList(result);
             }
-
-            return SqlAutoEnumsGenerateFromList(result);
         }
-    }
 
-    private static EnumDescriptor Search(List<EnumDescriptor> list, string prefix, string name )
-    {
-        foreach (var data in list)
+        private static EnumDescriptor Search(IEnumerable<EnumDescriptor> list, string prefix, string name )
         {
-            if (data.Name == name && data.Prefix == prefix) return data;
-        }
-        return null;
-    }
-
-    private static SqlChars SqlAutoEnumsGenerateFromList(List<EnumDescriptor> list)
-    {
-        var gen = new SimpleGenerator();
-        string res = gen.Generate(list);
-
-        return new SqlChars(res.ToCharArray());
-    }
-
-
-
-    private static CscCompiler CompileIt(string code)
-    {
-        CscCompiler csc = new CscCompiler()
-        {
-            Code = code // "public class FooClass { public string Execute() { return \"output!\";}}"
-        };
-        csc.Compile();
-
-        return csc;
-    }
-
-
-    class EnumMember
-    {
-        public int ID;
-        public string Name;
-    }
-
-    [SqlFunction(DataAccess = DataAccessKind.Read, Name = "SqlAutoEnums.EnumMembers_Current", FillRowMethodName = "EnumMembersCurrentFillRow", TableDefinition = "ID INT, Name nvarchar(4000)")]
-    public static IEnumerable EnumMembersCurrent(string enumName) 
-    {
-        using (SqlConnection conn = new SqlConnection("context connection=true"))
-        {
-            conn.Open();
-            string qry = string.Format("select ID, Name from dbo.[{0}.ToList]()", enumName);
-
-
-            var command = new SqlCommand(qry, conn) { CommandType = CommandType.Text };
-
-            var reader = command.ExecuteReader();
-
-            var result = new List<EnumMember>();
-            while (reader.Read())
+            foreach (var data in list)
             {
-                EnumMember em = new EnumMember { ID = reader.GetInt32(0), Name = reader[1].ToString() };
-                result.Add(em);
+                if (data.Name == name && data.Prefix == prefix) return data;
             }
-            return result;
+            return null;
         }
+
+        private static SqlChars SqlAutoEnumsGenerateFromList(List<EnumDescriptor> list)
+        {
+            var gen = new SimpleGenerator();
+            string res = gen.Generate(list);
+
+            return new SqlChars(res.ToCharArray());
+        }
+
+
+
+        private static CscCompiler CompileIt(string code)
+        {
+            var csc = new CscCompiler
+            {
+                Code = code // "public class FooClass { public string Execute() { return \"output!\";}}"
+            };
+            csc.Compile();
+
+            return csc;
+        }
+
+
+        class EnumMember
+        {
+            public int ID;
+            public string Name;
+        }
+
+        [SqlFunction(DataAccess = DataAccessKind.Read, Name = "SqlAutoEnums.EnumMembers_Current", FillRowMethodName = "EnumMembersCurrentFillRow", TableDefinition = "ID INT, Name nvarchar(4000)")]
+        public static IEnumerable EnumMembersCurrent(string enumName) 
+        {
+            using (var conn = new SqlConnection("context connection=true"))
+            {
+                conn.Open();
+                string qry = string.Format("select ID, Name from dbo.[{0}.ToList]()", enumName);
+
+
+                var command = new SqlCommand(qry, conn) { CommandType = CommandType.Text };
+
+                var reader = command.ExecuteReader();
+
+                var result = new List<EnumMember>();
+                while (reader.Read())
+                {
+                    var em = new EnumMember { ID = reader.GetInt32(0), Name = reader[1].ToString() };
+                    result.Add(em);
+                }
+                return result;
+            }
+        }
+        public static void EnumMembersCurrentFillRow(Object obj, out int id, out string name) 
+        {{
+            var data = (EnumMember)obj;
+            id = data.ID;
+            name = data.Name; 
+        }} 
+
+
     }
-    public static void EnumMembersCurrentFillRow(Object obj, out int id, out string name) 
-    {{
-        var data = (EnumMember)obj;
-        id = data.ID;
-        name = data.Name; 
-    }} 
-
-
 }
 
 

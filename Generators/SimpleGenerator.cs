@@ -26,7 +26,7 @@ namespace SQLAutoEnums.Generators
         {
             get
             {
-                if (null == _nameEnum || _nameEnum == string.Empty)
+                if (string.IsNullOrEmpty(_nameEnum))
                 {
                     _nameEnum = Name + "Enum" + Guid.NewGuid().ToString().Replace("-", string.Empty);
                 }
@@ -43,36 +43,35 @@ namespace SQLAutoEnums.Generators
 
         public string Generate(List<EnumDescriptor> list)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            sb.Append(_strHeader);
+            sb.Append(StrHeader);
 
             foreach (var data in list)
             {
-                sb.AppendFormat(_strEnumHeader, data.NameEnum, data.ValueType);
+                sb.AppendFormat(StrEnumHeader, data.NameEnum, data.ValueType);
                 foreach (var enval in data.Values)
                 {
-                    sb.AppendFormat(_strEnumItem, enval.Key, enval.Value);
+                    sb.AppendFormat(StrEnumItem, enval.Key, enval.Value);
                 }
-                sb.Append(_strEnumFooter);
+                sb.Append(StrEnumFooter);
 
-                sb.AppendFormat(_strEnumStructHeader, data.NameFull, data.NameEnum);
+                sb.AppendFormat(StrEnumStructHeader, data.NameFull, data.NameEnum);
                 foreach (var enval in data.Values)
                 {
-                    sb.AppendFormat(_strStructValue, data.NameFull, enval.Key, data.NameEnum);
-                    sb.AppendFormat(_strStructNumericValue, data.ValueType, "i", enval.Key, data.NameEnum);
+                    sb.AppendFormat(StrStructValue, data.NameFull, enval.Key, data.NameEnum);
+                    sb.AppendFormat(StrStructNumericValue, data.ValueType, "i", enval.Key, data.NameEnum);
                 }
-                sb.AppendFormat(_strEnumStructFooter, data.NameFull, data.NameEnum);
+                sb.AppendFormat(StrEnumStructFooter, data.NameFull, data.NameEnum);
 
             }
-            sb.Append(_strFooter);
+            sb.Append(StrFooter);
             
             return sb.ToString();
         }
 
 
-
-        private string _strHeader = @"
+        private const string StrHeader = @"
                                     using System; 
                                     using System.Data.SqlTypes; 
                                     using Microsoft.SqlServer.Server; 
@@ -80,17 +79,18 @@ namespace SQLAutoEnums.Generators
                                     using System.Collections.Generic;
                                     namespace SqlAutoEnumsGenerated 
                                     { ";
-        private string _strEnumHeader = @"public enum {0} : {1} {{  ";  // 0 = enumname, 1 = basetypename
-        private string _strEnumItem = @"{0} = {1}, ";  // 0 = enum item name, 1 = value
-        private string _strEnumFooter = @" } ";  // 0 = enumname, 1 = basetypename,  2 = enumvals
+        private const string StrEnumHeader = @"public enum {0} : {1} {{  "; // 0 = enumname, 1 = basetypename
+        private const string StrEnumItem = @"{0} = {1}, "; // 0 = enum item name, 1 = value
+        private const string StrEnumFooter = @" } "; // 0 = enumname, 1 = basetypename,  2 = enumvals
 
 
-        private string _strStructValue = // 0 = structname, 1 = enummember name, 2 - enumname
-            @"public static {0} {1} {{ get {{ return new {0}({2}.{1}); }} }} "; 
-        private string _strStructNumericValue = // 0 = basetypename, 1 - num name prefix, 2 = enummember name, 3 = enumname
-            @"public static {0} {1}{2} {{ get {{ return ({0}){3}.{2}; }} }}";
+        private const string StrStructValue = // 0 = structname, 1 = enummember name, 2 - enumname
+            @"public static {0} {1} {{ [SqlMethod(IsDeterministic = true)]  get {{ return new {0}({2}.{1}); }} }} ";
 
-        private string _strEnumStructHeader = //  0 = structname, 1 = enumname
+        private const string StrStructNumericValue = // 0 = basetypename, 1 - num name prefix, 2 = enummember name, 3 = enumname
+            @"public static {0} {1}{2} {{ [SqlMethod(IsDeterministic = true)]  get {{ return ({0}){3}.{2}; }} }}";
+
+        private const string StrEnumStructHeader = //  0 = structname, 1 = enumname
             @"
     [Serializable]
     [SqlUserDefinedType(Format.UserDefined, IsByteOrdered = true, IsFixedLength = true, MaxByteSize=4)] 
@@ -100,9 +100,10 @@ namespace SQLAutoEnums.Generators
         {{
             _value = val; _null = false;
         }}
-
+        
         public {1}? Value
         {{
+            [SqlMethod(IsDeterministic = true)] 
             get {{ return _value; }}
             set {{ _value = value; _null = (value == null); }} 
         }}
@@ -145,8 +146,8 @@ namespace SQLAutoEnums.Generators
 
         ";
 
-        private string _strEnumStructFooter =  //  0 = structname, 1 = enumname
-@"
+        private const string StrEnumStructFooter = //  0 = structname, 1 = enumname
+            @"
         public static bool operator ==({0} a, {0} b) {{ return a.Value == b.Value; }}
         public static bool operator !=({0} a, {0} b) {{ return a.Value != b.Value; }}
         public bool IsNull {{ get {{ return _null; }} }}
@@ -179,8 +180,6 @@ namespace SQLAutoEnums.Generators
     }} 
 ";
 
-        private string _strFooter = @"}";
-
-
+        private const string StrFooter = @"}";
     }
 }
